@@ -116,11 +116,71 @@
     h1, h4, h5, p { color: var(--text-color) !important; }
     .opacity-75 { opacity: 0.75 !important; }
     .stat-value { color: var(--text-color); font-weight: 600; }
+    .sidebar-hover-area {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 20px;
+      z-index: 998;
+    }
+    
+    nav.sidebar {
+      transform: translateX(-240px);
+      transition: transform 0.3s ease;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+      border-right: 1px solid var(--border-color);
+    }
+    
+    .sidebar-hover-area:hover + nav.sidebar,
+    nav.sidebar:hover {
+      transform: translateX(0);
+    }
+    
+    .container {
+      transition: margin-left 0.3s ease;
+    }
+    
+    .sidebar-hover-area:hover ~ .container,
+    nav.sidebar:hover ~ .container {
+      margin-left: 240px;
+    }
+
+    nav.sidebar .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding-left: 8px;
+    }
   </style>
 </head>
 <body class="{{ request.session.theme|default:'dark' }}">
   <button class="theme-toggle btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
-
+  <div class="sidebar-hover-area"></div>
+  <nav class="sidebar position-fixed top-0 start-0 vh-100 bg-dark text-white p-4" style="width: 220px; z-index: 999;">
+    <h5 class="mb-4">Navigation</h5>
+    <ul class="nav flex-column">
+      <li class="nav-item mb-2">
+        <a class="nav-link text-white d-flex align-items-center gap-2" href="/">
+          <i class="fas fa-chart-line"></i>
+          Dashboard
+        </a>
+      </li>
+      <li class="nav-item mb-2">
+        <a class="nav-link text-white d-flex align-items-center gap-2" href="/statistics">
+          <i class="fas fa-database"></i>
+          Data Statistic
+        </a>
+      </li>
+      <li class="nav-item mb-2">
+        <a class="nav-link text-white d-flex align-items-center gap-2" href="/visualization">
+          <i class="fas fa-chart-pie"></i>
+          Data Visualization
+        </a>
+      </li>
+    </ul>
+  </nav>
+  
   <div class="container py-5">
     <header class="text-center mb-5">
       <h1 class="display-4 fw-bold mb-2">DustSense <span style="color: var(--highlight-color)">KU</span></h1>
@@ -167,7 +227,11 @@
           </div>
           <div class="icon-block">
             <i class="fas fa-wind"></i>
-            <div><div class="opacity-75">Wind Speed</div><div class="fs-4 stat-value">{{ latest.wind_speed }} km/h</div></div>
+            <div>
+              <div class="opacity-75">Wind Speed</div>
+              <!-- Wind speed may be missing; show '--' if not available -->
+              <div class="fs-4 stat-value">{{ latest_wind|default:"--" }} km/h</div>
+            </div>
           </div>
           <div class="icon-block">
             <i class="fas fa-droplet"></i>
@@ -279,6 +343,7 @@
     const pm10 = {{ pm10_values|safe }};
     const humidity = {{ humidity_values|safe }};
     const temperature = {{ temperature_values|safe }};
+    const wind_speed = {{wind_speed_values| safe}};
 
     const charts = {};
 
