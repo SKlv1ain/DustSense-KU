@@ -4,346 +4,386 @@
   <meta charset="UTF-8" />
   <title>DustSense KU - Air Quality Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Bootstrap & Chart.js & FontAwesome & Google Fonts -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    rel="stylesheet"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Prompt&display=swap"
-    rel="stylesheet"
-  />
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 
   <style>
     :root {
-      --bg-color: radial-gradient(ellipse at top left, #111722, #0e0e0e);
-      --card-color: #1e1e2f;
-      --text-color: #ffffff;
-      --icon-bg: #343a50;
-      --highlight-box: linear-gradient(145deg, #34334f, #1b1b2e);
+      --bg-color: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      --card-color: rgba(30, 41, 59, 0.95);
+      --text-color: #f8fafc;
+      --border-color: rgba(148, 163, 184, 0.2);
+      --highlight-color: #3b82f6;
+      --highlight-color-rgb: 59, 130, 246;
+      --chart-grid: rgba(148, 163, 184, 0.15);
+      --icon-bg: rgba(59, 130, 246, 0.15);
     }
     body.light {
-      --bg-color: linear-gradient(to bottom, #f9f9f9, #e0e0e0);
-      --card-color: #ffffff;
-      --text-color: #222222;
-      --icon-bg: #f0f0f0;
-      --highlight-box: linear-gradient(to bottom, #e6e6e6, #fefefe);
+      --bg-color: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      --card-color: rgba(255, 255, 255, 0.95);
+      --text-color: #1e293b;
+      --border-color: rgba(148, 163, 184, 0.2);
+      --highlight-color: #2563eb;
+      --highlight-color-rgb: 37, 99, 235;
+      --chart-grid: rgba(71, 85, 105, 0.1);
+      --icon-bg: rgba(37, 99, 235, 0.1);
     }
     body {
-      font-family: 'Prompt', sans-serif;
+      font-family: 'Inter', sans-serif;
       background: var(--bg-color);
       color: var(--text-color);
-      transition: background 0.5s, color 0.5s;
-    }
-    canvas#bgCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -1;
-      filter: blur(1px) brightness(0.6);
+      transition: all 0.3s ease;
+      min-height: 100vh;
     }
     .card {
-      border: none;
-      border-radius: 20px;
       background: var(--card-color);
-      color: var(--text-color);
-      transition: background 0.5s, color 0.5s;
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    h1, h4, h5, p, strong, .section-label {
-      color: var(--text-color) !important;
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    }
+    .aqi-value {
+      font-size: 4rem;
+      font-weight: 700;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--highlight-color), #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
     .aqi-badge {
-      font-size: 1.4rem;
-      padding: 10px 20px;
-      border-radius: 30px;
+      padding: 0.5rem 1.5rem;
+      border-radius: 9999px;
       font-weight: 600;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: all 0.2s ease;
     }
-    .good { background-color: #198754; color: #fff; }
-    .moderate { background-color: #ffc107; color: #000; }
-    .unhealthy { background-color: #dc3545; color: #fff; }
-    .section-label {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-    }
+    .good { background: linear-gradient(135deg, #22c55e, #16a34a); color: white !important; }
+    .moderate { background: linear-gradient(135deg, #f59e0b, #d97706); color: white !important; }
+    .unhealthy { background: linear-gradient(135deg, #ef4444, #dc2626); color: white !important; }
     .icon-block {
-      font-size: 1.3rem;
-      padding: 14px 18px;
-      border-radius: 14px;
       background: var(--icon-bg);
-      margin-bottom: 14px;
+      border-radius: 12px;
+      padding: 1.25rem;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
+    }
+    .icon-block:hover {
+      transform: translateX(4px);
+      background: rgba(var(--highlight-color-rgb), 0.2);
+    }
+    .icon-block i { font-size: 1.5rem; color: var(--highlight-color); }
+    .chart-card { height: 300px; padding: 1.25rem; }
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(239,68,68,0.2);
+      border-radius: 9999px;
+      color: #ef4444;
       font-weight: 500;
-      box-shadow: 0 0 6px rgba(255,255,255,0.08);
+      font-size: 0.875rem;
     }
-    .icon-block i {
-      font-size: 1.7rem;
+    .live-indicator::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
     }
-    .highlight-box {
-      background: var(--highlight-box);
-      border-radius: 16px;
-      padding: 30px;
-      text-align: center;
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.5; }
+      50% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.5; }
     }
-    .highlight-box p {
-      font-size: 1.3rem;
-    }
-
-    /* Responsive grid for charts */
-    .chart-card {
-      position: relative;
-      background: var(--card-color);
-      border-radius: 20px;
-      padding: 1rem;
-      height: 250px;
-    }
-    .chart-card h5 {
-      margin-bottom: 0.5rem;
-    }
-    .chart-container {
-      position: absolute;
-      top: 2.5rem;
-      bottom: 1rem;
-      left: 1rem;
-      right: 1rem;
-    }
-    .chart-container canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    .skyline {
-      background: url('https://i.imgur.com/WwUzB0v.png') no-repeat bottom center;
-      background-size: cover;
-      opacity: 0.1;
-      height: 100px;
-    }
-    .mode-toggle {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1000;
-    }
+    .theme-toggle { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000; background: var(--card-color); border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; color: var(--text-color); }
+    .theme-toggle:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .chart-container { position: relative; height: 100%; width: 100%; }
+    h1, h4, h5, p { color: var(--text-color) !important; }
+    .opacity-75 { opacity: 0.75 !important; }
+    .stat-value { color: var(--text-color); font-weight: 600; }
   </style>
 </head>
-<body>
-  <!-- Theme Toggle -->
-  <div class="mode-toggle">
-    <button class="btn btn-sm btn-outline-light" onclick="toggleTheme()">
-      <i class="fa-solid fa-circle-half-stroke"></i> Toggle Theme
-    </button>
-  </div>
-
-  <!-- Dynamic Background -->
-  <canvas id="bgCanvas"></canvas>
+<body class="{{ request.session.theme|default:'dark' }}">
+  <button class="theme-toggle btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
 
   <div class="container py-5">
-    <h1 class="text-center mb-5">DustSense | Thailand Air Quality Dashboard</h1>
-    <div class="row g-4">
+    <header class="text-center mb-5">
+      <h1 class="display-4 fw-bold mb-2">DustSense <span style="color: var(--highlight-color)">KU</span></h1>
+      <p class="lead opacity-75">Real-time Air Quality Monitoring System</p>
+    </header>
+
+    <div class="row g-4 mb-5">
+      <!-- Air Quality Index Card -->
       <div class="col-lg-6">
-        <div class="card p-4 shadow-lg position-relative">
-          <span class="position-absolute top-0 end-0 badge bg-danger mt-2 me-3">
-            <i class="fa-solid fa-circle-dot"></i> LIVE
-          </span>
-          <h4>Air Quality Index</h4>
-          <h1 class="display-1 fw-bold">{{ latest.pm2_5 }}</h1>
-          <div class="aqi-badge {% if latest.pm2_5 > 100 %}unhealthy{% elif latest.pm2_5 > 50 %}moderate{% else %}good{% endif %}">
-            {% if latest.pm2_5 > 100 %}Unhealthy{% elif latest.pm2_5 > 50 %}Moderate{% else %}Good{% endif %}
+        <div class="card h-100 p-4">
+          <div class="d-flex justify-content-between align-items-start mb-4">
+            <h4 class="mb-0">Air Quality Index</h4>
+            <span class="live-indicator">LIVE</span>
           </div>
-          <p class="mt-4"><strong>PM2.5:</strong> {{ latest.pm2_5 }} µg/m³</p>
-          <p><strong>PM10:</strong> {{ latest.pm10 }} µg/m³</p>
-          <p><strong>Time:</strong> {{ latest.ts }}</p>
-          <div class="skyline mt-4"></div>
+          <div class="text-center my-4">
+            <div class="aqi-value mb-3">{{ latest.pm2_5 }}</div>
+            <div class="aqi-badge {% if latest.pm2_5 > 100 %}unhealthy{% elif latest.pm2_5 > 50 %}moderate{% else %}good{% endif %}">
+              {% if latest.pm2_5 > 100 %}Unhealthy{% elif latest.pm2_5 > 50 %}Moderate{% else %}Good{% endif %}
+            </div>
+          </div>
+          <div class="row mt-4">
+            <div class="col-6">
+              <div class="text-center p-3 rounded-3" style="background: rgba(var(--highlight-color-rgb),0.1)">
+                <div class="fs-5 fw-bold">PM2.5</div>
+                <div class="fs-4 stat-value">{{ latest.pm2_5 }} µg/m³</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center p-3 rounded-3" style="background: rgba(var(--highlight-color-rgb),0.1)">
+                <div class="fs-5 fw-bold">PM10</div>
+                <div class="fs-4 stat-value">{{ latest.pm10 }} µg/m³</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+      <!-- Environmental Conditions Card -->
       <div class="col-lg-6">
-        <div class="card p-4 shadow-lg">
-          <div class="section-label">Environment Info</div>
+        <div class="card h-100 p-4">
+          <h4 class="mb-4">Environmental Conditions</h4>
           <div class="icon-block">
-            <i class="fa-solid fa-temperature-half"></i>
-            Temperature: <strong>{{ latest.temp }} °C</strong>
+            <i class="fas fa-temperature-high"></i>
+            <div><div class="opacity-75">Temperature</div><div class="fs-4 stat-value">{{ latest.temp }}°C</div></div>
           </div>
           <div class="icon-block">
-            <i class="fa-solid fa-wind"></i>
-            Wind Speed: <strong>9 km/h</strong>
+            <i class="fas fa-wind"></i>
+            <div><div class="opacity-75">Wind Speed</div><div class="fs-4 stat-value">{{ latest.wind_speed }} km/h</div></div>
           </div>
           <div class="icon-block">
-            <i class="fa-solid fa-droplet"></i>
-            Humidity: <strong>{{ latest.humidity }}%</strong>
-          </div>
-          <div class="icon-block">
-            <i class="fa-solid fa-sun"></i>
-            UV Index: <strong>0</strong>
+            <i class="fas fa-droplet"></i>
+            <div><div class="opacity-75">Humidity</div><div class="fs-4 stat-value">{{ latest.humidity }}%</div></div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="row my-5">
-      <div class="col">
-        <div class="highlight-box shadow-lg">
-          <div class="section-label mb-3">Health Recommendations</div>
+    <!-- Health Advisory -->
+    <div class="card p-4 mb-5">
+      <h4 class="mb-4">Health Advisory</h4>
+      <div class="d-flex align-items-center gap-4 p-4 rounded-3" style="background: {% if latest.pm2_5 > 100 %}rgba(239,68,68,0.15){% elif latest.pm2_5 > 50 %}rgba(245,158,11,0.15){% else %}rgba(34,197,94,0.15){% endif %}">
+        <i class="fas {% if latest.pm2_5 > 100 %}fa-triangle-exclamation text-danger{% elif latest.pm2_5 > 50 %}fa-exclamation-circle text-warning{% else %}fa-check-circle text-success{% endif %} fa-2x"></i>
+        <div>
           {% if latest.pm2_5 > 100 %}
-            <p class="text-danger">❌ Stay indoors. Wear an N95 mask if outside. Keep windows closed.</p>
+            <h5 class="text-danger mb-2">High Risk - Take Precautions</h5>
+            <p class="mb-0">Stay indoors, use air purifiers, and wear N95 masks if outdoor activity is necessary.</p>
           {% elif latest.pm2_5 > 50 %}
-            <p class="text-warning">⚠️ Moderate risk. Avoid prolonged outdoor exposure. Use a mask.</p>
+            <h5 class="text-warning mb-2">Moderate Risk - Be Cautious</h5>
+            <p class="mb-0">Sensitive individuals should limit prolonged outdoor exposure. Consider wearing masks.</p>
           {% else %}
-            <p class="text-success">✅ Air is safe. Enjoy your outdoor activities.</p>
+            <h5 class="text-success mb-2">Low Risk - Air Quality is Good</h5>
+            <p class="mb-0">Air quality is satisfactory. Enjoy your outdoor activities!</p>
           {% endif %}
-          <img src="https://img.icons8.com/external-flat-juicy-fish/64/ffffff/external-mask-virus-prevention-flat-flat-juicy-fish.png"/>
         </div>
       </div>
     </div>
 
-    <!-- Charts -->
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-      <div class="col">
-        <div class="chart-card">
-          <h5>PM2.5 (µg/m³)</h5>
-          <div class="chart-container">
-            <canvas id="pm25Chart"></canvas>
-          </div>
-        </div>
+    <!-- Historical Data Charts -->
+    <h4 class="mb-4">Historical Data Analysis</h4>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="card chart-card"><h5>PM2.5 Trends</h5><div class="chart-container"><canvas id="pm25Chart"></canvas></div></div>
       </div>
-      <div class="col">
-        <div class="chart-card">
-          <h5>PM10 (µg/m³)</h5>
-          <div class="chart-container">
-            <canvas id="pm10Chart"></canvas>
-          </div>
-        </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card chart-card"><h5>PM10 Levels</h5><div class="chart-container"><canvas id="pm10Chart"></canvas></div></div>
       </div>
-      <div class="col">
-        <div class="chart-card">
-          <h5>Humidity (%)</h5>
-          <div class="chart-container">
-            <canvas id="humidityChart"></canvas>
-          </div>
-        </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card chart-card"><h5>Humidity Variation</h5><div class="chart-container"><canvas id="humidityChart"></canvas></div></div>
       </div>
-      <div class="col">
-        <div class="chart-card">
-          <h5>Temperature (°C)</h5>
-          <div class="chart-container">
-            <canvas id="temperatureChart"></canvas>
-          </div>
-        </div>
+      <div class="col-md-6 col-lg-6">
+        <div class="card chart-card"><h5>Temperature History</h5><div class="chart-container"><canvas id="temperatureChart"></canvas></div></div>
       </div>
-      <div class="col">
-        <div class="chart-card">
-          <h5>PM2.5 vs PM10</h5>
-          <div class="chart-container">
-            <canvas id="pmCompareChart"></canvas>
-          </div>
-        </div>
+      <div class="col-lg-6">
+        <div class="card chart-card"><h5>PM2.5 vs PM10 Comparison</h5><div class="chart-container"><canvas id="pmCompareChart"></canvas></div></div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card chart-card"><h5>PM2.5 vs Time (Scatter)</h5><div class="chart-container"><canvas id="pm25TimeScatter"></canvas></div></div>
+      </div>
+      <div class="col-12">
+        <div class="card chart-card" style="height:400px;"><h5>Timeline Chart (Hourly PM2.5)</h5><div class="chart-container"><canvas id="timelineChart"></canvas></div></div>
       </div>
     </div>
   </div>
 
+  <footer class="text-center py-4 mt-5 opacity-75">
+    <p class="mb-0">© 2025 DustSense KU - Air Quality Monitoring System</p>
+  </footer>
+
   <script>
-    // Theme toggle
     function toggleTheme() {
-      const isLight = document.body.classList.toggle('light');
-      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      const body = document.body;
+      const isDark = body.classList.contains('dark');
+      body.classList.toggle('dark');
+      body.classList.toggle('light');
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+      updateCharts();
     }
-    window.onload = () => {
-      if (localStorage.getItem('theme') === 'light') {
-        document.body.classList.add('light');
+    document.addEventListener('DOMContentLoaded', () => {
+      const theme = localStorage.getItem('theme') || 'dark';
+      document.body.classList.add(theme);
+    });
+
+    const commonOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: {
+            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
+            font: { family: "'Inter', sans-serif", weight: '500' }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: { unit: 'hour', stepSize: 2 },
+          grid: { color: getComputedStyle(document.body).getPropertyValue('--chart-grid') },
+          ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') }
+        },
+        y: {
+          grid: { color: getComputedStyle(document.body).getPropertyValue('--chart-grid') },
+          ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') }
+        }
       }
     };
 
-    // Background particles
-    const canvas = document.getElementById('bgCanvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-    for (let i = 0; i < 150; i++) {
-      particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 2 + 1, d: Math.random() * 100 });
-    }
-    let angle = 0;
-    function drawParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
-      ctx.shadowColor = "#ffffff";
-      ctx.shadowBlur = 1;
-      particles.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      angle += 0.002;
-      particles.forEach(p => {
-        p.y += Math.cos(angle + p.d) + 0.3;
-        p.x += Math.sin(angle) * 0.3;
-        if (p.y > canvas.height || p.x > canvas.width || p.x < 0) {
-          p.x = Math.random() * canvas.width;
-          p.y = -10;
-        }
-      });
-    }
-    setInterval(drawParticles, 33);
+    const createGradient = (ctx, color) => {
+      const g = ctx.createLinearGradient(0,0,0,300);
+      g.addColorStop(0, color+'40');
+      g.addColorStop(1, color+'00');
+      return g;
+    };
 
-    // Chart.js data and options
     const labels = {{ timestamps|safe }};
-    const pm25   = {{ pm_values|safe }};
-    const pm10   = {{ pm10_values|safe }};
+    const pm25 = {{ pm_values|safe }};
+    const pm10 = {{ pm10_values|safe }};
     const humidity = {{ humidity_values|safe }};
     const temperature = {{ temperature_values|safe }};
 
-    const chartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: { y: { beginAtZero: true } }
-    };
+    const charts = {};
 
-    new Chart(document.getElementById('pm25Chart'), {
-      type: 'line',
-      data: { labels, datasets: [{ label: 'PM2.5', data: pm25, tension: 0.3 }] },
-      options: chartOptions
+    // Line charts
+    charts.pm25 = new Chart(document.getElementById('pm25Chart'), {
+      type:'line',
+      data:{ labels, datasets:[{ label:'PM2.5', data:pm25, borderColor:'#3b82f6', backgroundColor:createGradient(document.getElementById('pm25Chart').getContext('2d'),'#3b82f6'), tension:0.4, fill:true }] },
+      options:commonOptions
+    });
+    charts.pm10 = new Chart(document.getElementById('pm10Chart'), {
+      type:'line',
+      data:{ labels, datasets:[{ label:'PM10', data:pm10, borderColor:'#f59e0b', backgroundColor:createGradient(document.getElementById('pm10Chart').getContext('2d'),'#f59e0b'), tension:0.4, fill:true }] },
+      options:commonOptions
+    });
+    charts.humidity = new Chart(document.getElementById('humidityChart'), {
+      type:'line',
+      data:{ labels, datasets:[{ label:'Humidity', data:humidity, borderColor:'#0ea5e9', backgroundColor:createGradient(document.getElementById('humidityChart').getContext('2d'),'#0ea5e9'), tension:0.4, fill:true }] },
+      options:commonOptions
+    });
+    charts.temperature = new Chart(document.getElementById('temperatureChart'), {
+      type:'line',
+      data:{ labels, datasets:[{ label:'Temperature', data:temperature, borderColor:'#ef4444', backgroundColor:createGradient(document.getElementById('temperatureChart').getContext('2d'),'#ef4444'), tension:0.4, fill:true }] },
+      options:commonOptions
+    });
+    charts.pmCompare = new Chart(document.getElementById('pmCompareChart'), {
+      type:'line',
+      data:{ labels, datasets:[
+        { label:'PM2.5', data:pm25, borderColor:'#3b82f6', backgroundColor:'transparent', tension:0.4 },
+        { label:'PM10', data:pm10, borderColor:'#f59e0b', backgroundColor:'transparent', tension:0.4 }
+      ]},
+      options:commonOptions
     });
 
-    new Chart(document.getElementById('pm10Chart'), {
-      type: 'line',
-      data: { labels, datasets: [{ label: 'PM10', data: pm10, tension: 0.3 }] },
-      options: chartOptions
-    });
-
-    new Chart(document.getElementById('humidityChart'), {
-      type: 'line',
-      data: { labels, datasets: [{ label: 'Humidity', data: humidity, tension: 0.3 }] },
-      options: chartOptions
-    });
-
-    new Chart(document.getElementById('temperatureChart'), {
-      type: 'line',
-      data: { labels, datasets: [{ label: 'Temperature', data: temperature, tension: 0.3 }] },
-      options: chartOptions
-    });
-
-    new Chart(document.getElementById('pmCompareChart'), {
-      type: 'line',
+    // Scatter chart for PM2.5 vs Time
+    charts.scatter = new Chart(document.getElementById('pm25TimeScatter'), {
+      type: 'scatter',
       data: {
-        labels,
-        datasets: [
-          { label: 'PM2.5', data: pm25, tension: 0.3 },
-          { label: 'PM10', data: pm10, tension: 0.3 }
-        ]
+        datasets: [{
+          label: 'PM2.5 vs Time',
+          data: labels.map((t, i) => ({ x: new Date(t), y: pm25[i] })),
+          pointBackgroundColor: getComputedStyle(document.body).getPropertyValue('--highlight-color'),
+          pointRadius: 5
+        }]
       },
-      options: chartOptions
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: commonOptions.plugins,
+        scales: {
+          x: {
+            type: 'time',
+            time: { tooltipFormat: 'yyyy-MM-dd HH:mm', unit: 'hour', stepSize: 2 },
+            title: { display: true, text: 'Time', color: getComputedStyle(document.body).getPropertyValue('--text-color') },
+            grid: { color: getComputedStyle(document.body).getPropertyValue('--chart-grid') },
+            ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') }
+          },
+          y: {
+            title: { display: true, text: 'PM2.5 (µg/m³)', color: getComputedStyle(document.body).getPropertyValue('--text-color') },
+            grid: { color: getComputedStyle(document.body).getPropertyValue('--chart-grid') },
+            ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') }
+          }
+        }
+      }
     });
+
+    // Timeline chart
+    charts.timeline = new Chart(document.getElementById('timelineChart'), {
+      type:'line',
+      data:{ datasets:[{
+        label:'PM2.5 Over Time',
+        data: labels.map((t,i)=>({ x:new Date(t), y:pm25[i] })),
+        borderColor:getComputedStyle(document.body).getPropertyValue('--highlight-color'),
+        fill:false, tension:0.4
+      }]},
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:commonOptions.plugins,
+        scales:{
+          x:{
+            type:'time',
+            time:{ unit:'hour', stepSize:2 },
+            title:{ display:true, text:'Time', color:getComputedStyle(document.body).getPropertyValue('--text-color') },
+            grid:{ color:getComputedStyle(document.body).getPropertyValue('--chart-grid') },
+            ticks:{ color:getComputedStyle(document.body).getPropertyValue('--text-color') }
+          },
+          y:{
+            title:{ display:true, text:'PM2.5 (µg/m³)', color:getComputedStyle(document.body).getPropertyValue('--text-color') },
+            grid:{ color:getComputedStyle(document.body).getPropertyValue('--chart-grid') },
+            ticks:{ color:getComputedStyle(document.body).getPropertyValue('--text-color') }
+          }
+        }
+      }
+    });
+
+    function updateCharts() {
+      Object.values(charts).forEach(chart => {
+        chart.options.scales.x.grid.color = getComputedStyle(document.body).getPropertyValue('--chart-grid');
+        chart.options.scales.y.grid.color = getComputedStyle(document.body).getPropertyValue('--chart-grid');
+        chart.options.scales.x.ticks.color = getComputedStyle(document.body).getPropertyValue('--text-color');
+        chart.options.scales.y.ticks.color = getComputedStyle(document.body).getPropertyValue('--text-color');
+        chart.options.plugins.legend.labels.color = getComputedStyle(document.body).getPropertyValue('--text-color');
+        chart.update();
+      });
+    }
   </script>
 </body>
 </html>
