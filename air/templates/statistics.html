@@ -11,23 +11,140 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
+      transition: background 0.3s, color 0.3s;
+      margin-left: 0;
+    }
+
+    /* Themes */
+    body.dark {
       background: linear-gradient(135deg, #0f172a, #1e293b);
       color: #f8fafc;
     }
+    body.light {
+      background: linear-gradient(135deg, #f0f4f8, #ffffff);
+      color: #1e293b;
+    }
+
     .card {
-      background: rgba(30, 41, 59, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: 16px;
       padding: 1.5rem;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
       backdrop-filter: blur(12px);
+      transition: background 0.3s, color 0.3s;
     }
-    h1, h4, p {
+
+    body.dark .card {
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.2);
       color: #f8fafc;
+    }
+
+    body.light .card {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(30, 41, 59, 0.1);
+      color: #1e293b;
+    }
+
+    body.dark h1, body.dark h4, body.dark p {
+      color: #f8fafc;
+    }
+    body.light h1, body.light h4, body.light p {
+      color: #1e293b;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 1100;
+      background: #1e293b;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+    }
+
+    body.light .theme-toggle {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -220px;
+      height: 100vh;
+      width: 220px;
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar-hover-area {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 20px;
+      height: 100vh;
+      z-index: 999;
+    }
+
+    .sidebar-visible .sidebar {
+      left: 0;
+    }
+
+    .sidebar.bg-dark {
+      background-color: #1e293b !important;
+    }
+
+    .sidebar.bg-light {
+      background-color: #ffffff !important;
+    }
+
+    .nav-link {
+      transition: background 0.2s;
+    }
+
+    .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.light .nav-link:hover {
+      background-color: rgba(0, 0, 0, 0.05);
     }
   </style>
 </head>
-<body>
+<body class="{{ request.session.theme|default:'dark' }}">
+
+  <!-- Theme Toggle Button -->
+  <button class="theme-toggle btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+
+  <!-- Sidebar Hover Area -->
+  <div class="sidebar-hover-area"></div>
+
+  <!-- Sidebar -->
+  <nav class="sidebar bg-dark text-white p-4">
+    <h5 class="mb-4">Navigation</h5>
+    <ul class="nav flex-column">
+      <li class="nav-item mb-2">
+        <a class="nav-link text-white d-flex align-items-center gap-2" href="/">
+          <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+      </li>
+      <li class="nav-item mb-2">
+        <a class="nav-link text-white d-flex align-items-center gap-2" href="/statistics">
+          <i class="fas fa-database"></i> Data Statistic
+        </a>
+      </li>
+      <li class="nav-item mb-2">
+        <a class="nav-link text-white d-flex align-items-center gap-2" href="/visualization">
+          <i class="fas fa-chart-pie"></i> Data Visualization
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
   <div class="container py-5">
     <header class="text-center mb-5">
       <h1 class="display-4 fw-bold">Data Statistics</h1>
@@ -61,5 +178,48 @@
       </div>
     </div>
   </div>
+
+  <!-- Scripts -->
+  <script>
+    // Theme initialization
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    document.body.classList.add(currentTheme);
+    updateSidebarTheme();
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      document.body.classList.toggle('light');
+      const newTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
+      localStorage.setItem('theme', newTheme);
+      updateSidebarTheme();
+    }
+
+    function updateSidebarTheme() {
+      const sidebar = document.querySelector('.sidebar');
+      const links = sidebar.querySelectorAll('.nav-link');
+
+      if (document.body.classList.contains('light')) {
+        sidebar.classList.remove('bg-dark', 'text-white');
+        sidebar.classList.add('bg-light', 'text-dark');
+        links.forEach(link => link.classList.replace('text-white', 'text-dark'));
+      } else {
+        sidebar.classList.remove('bg-light', 'text-dark');
+        sidebar.classList.add('bg-dark', 'text-white');
+        links.forEach(link => link.classList.replace('text-dark', 'text-white'));
+      }
+    }
+
+    // Sidebar hover behavior
+    const hoverArea = document.querySelector('.sidebar-hover-area');
+    const sidebar = document.querySelector('.sidebar');
+
+    hoverArea.addEventListener('mouseenter', () => {
+      document.body.classList.add('sidebar-visible');
+    });
+
+    sidebar.addEventListener('mouseleave', () => {
+      document.body.classList.remove('sidebar-visible');
+    });
+  </script>
 </body>
 </html>
