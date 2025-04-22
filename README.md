@@ -4,7 +4,7 @@ DustSense KU is a web-based air quality monitoring and health advisory system th
 
 ---
 
-## 🌍 Project Overview
+##  Project Overview
 
 Air pollution, especially dust particles (PM2.5 and PM10), can severely impact respiratory health. This project collects and analyzes real-time environmental data to:
 - Predict air quality
@@ -13,7 +13,7 @@ Air pollution, especially dust particles (PM2.5 and PM10), can severely impact r
 
 ---
 
-## 🔌 Sensor Hardware
+##  Sensor Hardware
 
 - **PMS7003** – Dust sensor (PM2.5, PM10)
 - **KY-015** – Humidity sensor
@@ -21,13 +21,13 @@ Air pollution, especially dust particles (PM2.5 and PM10), can severely impact r
 
 ---
 
-## 🌐 External API
+##  External API
 
 - **Wind Speed Data**: Fetched from [Open-Meteo API](https://open-meteo.com)
 
 ---
 
-## 🧠 Features
+## Features
 
 - Live AQI and environmental conditions
 - Risk-level-based Health Advisory with animation icons
@@ -87,7 +87,7 @@ Visit `http://127.0.0.1:8000/` in your browser to access the dashboard.
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 ```plaintext
 DustSense-KU/
 ├── air/                  
@@ -107,12 +107,16 @@ DustSense-KU/
 ├── db.sqlite3            
 └── manage.py
 ```
+---
+### Database Schema
 
+This diagram visualizes the database structure for DustSense KU:
+
+![Database ER Diagram](databaseSchema.png)
 ---
 ## 🙌 Contributions
 
 Contributions are welcome! Feel free to fork the repository, submit pull requests, or raise issues to help improve the system.
 
-## 📜 License
 
-This project is licensed under the MIT License.
+
