@@ -41,7 +41,9 @@ Air pollution, especially dust particles (PM2.5 and PM10), can severely impact r
 
 ---
 
-## 🖥️ How to Run (Local Setup)
+## 🖥️ Getting Started
+
+Follow these steps to set up and run the DustSense KU project on your local machine.
 
 ### 1. Clone the Repository
 
@@ -49,34 +51,43 @@ Air pollution, especially dust particles (PM2.5 and PM10), can severely impact r
 git clone https://github.com/your-username/DustSense-KU.git
 cd DustSense-KU
 ```
-### 2. Clone the Repository
+
+### 2. Set Up a Virtual Environment
+
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # for Mac/Linux
-.venv\Scripts\activate     # for Windows
+source .venv/bin/activate  # MacOS/Linux
+.venv\Scripts\activate     # Windows
 ```
 
-### 3. Install Dependencies
+### 3. Install Required Packages
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure .env (Optional for API Key or DB Settings)
-Create a .env file if needed for production, but this is optional for local development.
+### 4. Configure Environment Variables (Optional)
 
+If using custom API keys or database settings, create a `.env` file and set the necessary variables.
 
-### 5. Apply Migrations
+### 5. Apply Database Migrations
+
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 6. Run Server
+### 6. Start the Development Server
+
 ```bash
 python manage.py runserver
 ```
+
+Visit `http://127.0.0.1:8000/` in your browser to access the dashboard.
+
 ---
-### Folder Structure
+
+## 📂 Project Structure
 ```plaintext
 DustSense-KU/
 ├── air/                  
@@ -97,3 +108,11 @@ DustSense-KU/
 └── manage.py
 ```
 
+---
+## 🙌 Contributions
+
+Contributions are welcome! Feel free to fork the repository, submit pull requests, or raise issues to help improve the system.
+
+## 📜 License
+
+This project is licensed under the MIT License.
